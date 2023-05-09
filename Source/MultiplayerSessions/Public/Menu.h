@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "Menu.generated.h"
 
 /**
@@ -16,7 +17,7 @@ class MULTIPLAYERSESSIONS_API UMenu : public UUserWidget
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void MenuSetup();
+	void MenuSetup(int32 NumberOfPublicConnections = 4, FString MatchOfType = TEXT("FreeForAll"), FString LobbyPath=TEXT("/Game/ThirdPerson/Maps/Lobby?listen"));
 
 protected:
 	virtual bool Initialize() override;
@@ -37,5 +38,22 @@ private:
 
 	void MenuTearDown();
 
+	UFUNCTION()
+	void OnCreateSession(bool bWasSucessful);
+
+	void OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResults, bool bWasSucessful);
+	void OnJoinSession(EOnJoinSessionCompleteResult::Type Result);
+	
+	UFUNCTION()
+	void OnDestroySession(bool bWasSucessful);
+	UFUNCTION()
+	void OnStartSession(bool bWasSucessful);
+
 	class UMultiplayerSessionsSubsystem* MultiplayerSessionSubsystem;
+
+
+	int32 NumPublicConnections{ 4 };
+	FString MatchType{ TEXT("FreeForAll") };
+
+	FString LobbyPath{ TEXT("/Game/ThirdPerson/Maps/Lobby") };
 };

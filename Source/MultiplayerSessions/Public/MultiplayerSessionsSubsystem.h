@@ -7,6 +7,14 @@
 #include "Interfaces/OnlineSessionInterface.h"
 #include "MultiplayerSessionsSubsystem.generated.h"
 
+
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMultiplayerOnCreateSessionComplete, bool, bWasSucessful);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FMultiplayerOnFindSesionsComplete, const TArray<FOnlineSessionSearchResult>& Session, bool bWasSucessful);
+DECLARE_MULTICAST_DELEGATE_OneParam(FMultiplayerOnJoinSessionComplete, EOnJoinSessionCompleteResult::Type Result);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMultiplayerOnDestroySessionComplete, bool, bWasSucessful);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMultiplayerOnStartSessionComplete, bool, bWasSucessful);
+
 /**
  * 
  */
@@ -19,10 +27,16 @@ public:
 	UMultiplayerSessionsSubsystem();
 
 	void CreateSession(int32 NumPublicConnections, FString MatchType);
-	void Findsession(int32 MaxSearchResults);
+	void FindSessions(int32 MaxSearchResults);
 	void JoinSession(const FOnlineSessionSearchResult& SessionResult);
 	void DestroySession();
 	void StartSession();
+
+	FMultiplayerOnCreateSessionComplete OnCreateSessionCompleteDelegate;
+	FMultiplayerOnFindSesionsComplete OnFindSessionsCompleteDelegate;
+	FMultiplayerOnJoinSessionComplete OnJoinSessionCompleteDelegate;
+	FMultiplayerOnDestroySessionComplete OnDestroySessionCompleteDelegate;
+	FMultiplayerOnStartSessionComplete OnStartSessionCompleteDelegate;
 
 protected:
 	void OnCreateSessionComplete(FName SessionName, bool bWasSucessful);
@@ -32,8 +46,14 @@ protected:
 	void OnStartSessionComplete(FName SessionName, bool bWasSucessful);
 
 private:
+
+	bool IsLanMatch();
+
+private:
 	IOnlineSessionPtr SessionInterface;
 	TSharedPtr<FOnlineSessionSettings> LastSessionSettings;
+	TSharedPtr<FOnlineSessionSearch> LastSessionSearch;
+	bool bCreateSessionBlockedByDestroySession{false};
 
 	FOnCreateSessionCompleteDelegate CreateSessionCompleteDelegate;
 	FDelegateHandle CreateSessionCompleteDelegateHandle;
